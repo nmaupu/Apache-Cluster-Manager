@@ -3,11 +3,26 @@
 
 class Worker:
   """apache Load Balancer Worker class"""
-  pass
+  def __init__(self):
+    self.actionURL = ''
+    self.Worker_URL = ''
+    self.Route = ''
+    self.RouteRedir = ''
+    self.Factor = ''
+    self.Set = ''
+    self.Status = ''
+    self.Elected = ''
+    self.To = ''
+    self.From = ''
 
 class LoadBalancer(list):
   """apache Load Balancer class - contains a list of Workers"""
-  pass
+  def __init(self):
+    self.name = ''
+    self.StickySession = ''
+    self.Timeout = ''
+    self.FailoverAttempts = ''
+    self.Method = ''
 
 class VHost(list):
   """Class representing a VHost - contains a list of LoadBalancers"""

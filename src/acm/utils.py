@@ -8,29 +8,33 @@ import re
 class BalancerManagerParser(HTMLParser):
   def __init__(self):
     HTMLParser.__init__(self)
+    self.lbs = []
+    self.curtags = []
     self.reinit()
+    self.curlb = None
 
   def handle_starttag(self, tag, attrs):
-    if tag == 'hr':
-      self.reinit()
     self.curtags.append(tag)
     self.attrs = attrs
-    if tag == 'h3':
+    if tag == 'hr':
+      self.reinit()
+    elif tag == 'table':
+      self.tables += 1
+    elif tag == 'h3':
       lb = LoadBalancer()
       self.curlb = lb
       self.lbs.append(lb)
-    elif tag == 'table':
-      self.tables += 1
-      if self.tables == 2:
-        w = Worker()
-        self.curworker = w
-        self.curlb.append(w)
-    elif tag == 'th' and self.tables == 1:
-      pass
-    elif tag == 'th' and self.tables == 2:
-      pass
+    elif tag == 'tr' and self.tables == 1:
+      self.lbptr = -1
+    elif tag == 'tr' and self.tables == 2 and len(self.wattrs) > 0:
+      self.wptr = -1
+      w = Worker()
+      self.curworker = w
+      self.curlb.append(w)
+    elif tag == 'td' and self.tables == 1:
+      self.lbptr += 1
     elif tag == 'td' and self.tables == 2:
-      pass
+      self.wptr += 1
 
   def handle_endtag(self, tag):
     try:
@@ -48,23 +52,32 @@ class BalancerManagerParser(HTMLParser):
       str = r.search(data).group(1)
       self.curlb.name = str
     elif self.get_curtag() == 'th' and self.tables == 1:
-      setattr(self.curlb, dataValue, '')
+      self.lbattrs.append(dataValue)
     elif self.get_curtag() == 'th' and self.tables == 2:
-      setattr(self.curworker, dataValue, '')
+      self.wattrs.append(dataValue)
+    elif self.get_curtag() == 'td' and self.tables == 1:
+      attr = self.lbattrs[self.lbptr]
+      setattr(self.curlb, attr, dataValue)
+    elif self.get_curtag() == 'td' and self.tables == 2:
+      attr = self.wattrs[self.wptr]
+      setattr(self.curworker, attr, dataValue)
+    elif self.get_curtag() == 'a' and self.tables == 2:
+      attr = self.wattrs[self.wptr]
+      setattr(self.curworker, attr, dataValue)
 
   def get_curtag(self):
-    if len(self.curtags) > 0:
+    try:
       return self.curtags[-1]
-    else:
+    except:
       return None
 
   def reinit(self):
     self.tables = 0
-    self.curtags = []
     self.attrs = ''
-    self.lbs = []
-    self.curlb = None
-    self.curworker = None
+    self.lbattrs = []
+    self.wattrs  = []
+    self.lbptr = -1
+    self.wptr  = -1
 
 
 def fetch_balancer_manager_page(ip, port='80', vhost_name='', urlpath='balancer-manager'):
@@ -82,4 +95,13 @@ def fetch_balancer_manager_page(ip, port='80', vhost_name='', urlpath='balancer-
 b=BalancerManagerParser()
 page=fetch_balancer_manager_page('127.0.0.1')
 b.feed(page)
-print b.lbs
+
+for i in range (len(b.lbs)):
+  lb = b.lbs[i]
+  workers = b.lbs[i]
+  print ('LB - StickySession=%s, Timeout=%s, FailoverAttempts=%s, Method=%s' % 
+    (lb.StickySession, lb.Timeout, lb.FailoverAttempts, lb.Method))
+  for j in range (len(workers)):
+    w = workers[j]
+    print ('  Worker - Worker_URL=%s, Route=%s, RouteRedir=%s, Factor=%s, Set=%s, Status=%s, Elected=%s, To=%s, From=%s' % 
+      (w.Worker_URL, w.Route, w.RouteRedir, w.Factor, w.Set, w.Status, w.Elected, w.To, w.From))
