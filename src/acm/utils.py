@@ -1,9 +1,10 @@
 ## Package acm.parser
 ##
 from HTMLParser import HTMLParser
-from urllib2 import Request,urlopen
+from urllib2 import Request,urlopen,URLError
 from core import LoadBalancer,Worker
 import re
+import sys
 
 class BalancerManagerParser(HTMLParser):
   def __init__(self):
@@ -88,10 +89,9 @@ def fetch_balancer_manager_page(ip, port='80', vhost_name='', urlpath='balancer-
     req.add_header('Host', vhost_name)
     r = urlopen(req)
     return r.read()
-  except:
-    print ("Error occured - %s" % sys.exc_info()[0])
+  except URLError, e:
+    print ('Error occured [%s:%s] - %s' % (ip, port, e.reason))
     raise
-
 
 ## testing
 #b=BalancerManagerParser()
