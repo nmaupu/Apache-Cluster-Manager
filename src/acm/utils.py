@@ -30,11 +30,13 @@ class BalancerManagerParser(HTMLParser):
       self.wptr = -1
       w = Worker()
       self.curworker = w
-      self.curlb.append(w)
+      self.curlb.workers.append(w)
     elif tag == 'td' and self.tables == 1:
       self.lbptr += 1
     elif tag == 'td' and self.tables == 2:
       self.wptr += 1
+    elif tag == 'a' and self.tables == 2:
+      self.curworker.actionURL = self.attrs[0][1]
 
   def handle_endtag(self, tag):
     try:
@@ -92,16 +94,13 @@ def fetch_balancer_manager_page(ip, port='80', vhost_name='', urlpath='balancer-
 
 
 ## testing
-b=BalancerManagerParser()
-page=fetch_balancer_manager_page('127.0.0.1')
-b.feed(page)
-
-for i in range (len(b.lbs)):
-  lb = b.lbs[i]
-  workers = b.lbs[i]
-  print ('LB - StickySession=%s, Timeout=%s, FailoverAttempts=%s, Method=%s' % 
-    (lb.StickySession, lb.Timeout, lb.FailoverAttempts, lb.Method))
-  for j in range (len(workers)):
-    w = workers[j]
-    print ('  Worker - Worker_URL=%s, Route=%s, RouteRedir=%s, Factor=%s, Set=%s, Status=%s, Elected=%s, To=%s, From=%s' % 
-      (w.Worker_URL, w.Route, w.RouteRedir, w.Factor, w.Set, w.Status, w.Elected, w.To, w.From))
+#b=BalancerManagerParser()
+#page=fetch_balancer_manager_page('127.0.0.1')
+#b.feed(page)
+#
+#for i in range (len(b.lbs)):
+#  lb = b.lbs[i]
+#  print (lb.toString())
+#  for j in range (len(lb.workers)):
+#    w = lb.workers[j]
+#    print (w.toString())
