@@ -75,3 +75,18 @@ class Cluster:
   def __str__(self):
     return 'Cluster (%d servers): name=%s' % (len(self.servers), self.name)
 
+def print_debug(obj):
+  if isinstance(obj, list):
+    map(print_debug, obj)
+  else:
+    print obj
+
+  if isinstance(obj, Cluster):
+    print_debug(obj.servers)
+  elif isinstance(obj, Server):
+    print_debug(obj.vhosts)
+  elif isinstance(obj, VHost):
+    print_debug(obj.lbs)
+  elif isinstance(obj, LoadBalancer):
+    print_debug(obj.workers) 
+

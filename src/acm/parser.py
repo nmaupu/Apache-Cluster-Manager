@@ -2,7 +2,8 @@
 ##
 from HTMLParser import HTMLParser
 from urllib2 import Request,urlopen,URLError
-from core import LoadBalancer,Worker,Cluster,Server
+from core import LoadBalancer,Worker,Cluster,Server,print_debug
+from functional import curry
 from configobj import ConfigObj
 import re
 import sys
@@ -84,28 +85,6 @@ class BalancerManagerParser(HTMLParser):
     self.lbptr = -1
     self.wptr  = -1
 
-def fetch_balancer_manager_page(ip, port='80', vhost_name='', burl='balancer-manager'):
-  try:
-    req = Request('http://%s:%s/%s' % (ip, port, burl))
-    req.add_header('Host', vhost_name)
-    r = urlopen(req)
-    return r.read()
-  except URLError, e:
-    print ('Error occured [%s:%s] - %s' % (ip, port, e.reason))
-    raise
-
-## testing
-#b=BalancerManagerParser()
-#page=fetch_balancer_manager_page('127.0.0.1')
-#b.feed(page)
-#
-#for i in range (len(b.lbs)):
-#  lb = b.lbs[i]
-#  print (lb.toString())
-#  for j in range (len(lb.workers)):
-#    w = lb.workers[j]
-#    print (w.toString())
-
 class ConfigParser():
   def __init__(self, filename):
     self.filename = filename
@@ -152,47 +131,38 @@ class ConfigParser():
       return []
     return ret
 
-#clusters = readConfig('/tmp/test.cfg')
-#print clusters
-configParser = ConfigParser('/tmp/test.cfg')
+def fetch_balancer_manager_page(srv, vhost=None):
+  vh = vhost
+  if vh == None:
+    vh = VHost() ## Create a default vhost
+    
+  try:
+    req = Request('http://%s:%s/%s' % (srv.ip, srv.port, vh.balancerUrlPath))
+    if vh.name != '': req.add_header('Host', vh.name)
+    r = urlopen(req)
+    return r.read()
+  except URLError, e:
+    #print ('Error occured [%s:%s] - %s' % (srv.ip, srv.port, e.reason))
+    raise
+
+def process_server_vhost(srv, vhost):
+  try:
+    b=BalancerManagerParser()
+    page=fetch_balancer_manager_page(srv, vhost)
+    b.feed(page)
+    vhost.lbs = b.lbs
+  except Exception, e:
+    #print "hohohoho - %s" % e
+    s.error=True
+
+
+##
+## Test
+configParser = ConfigParser(sys.argv[1])
 clusters = configParser.readConf()
-
-
-## testing
-b=BalancerManagerParser()
-page=fetch_balancer_manager_page('127.0.0.1')
-b.feed(page)
-#
-#for i in range (len(b.lbs)):
-#  lb = b.lbs[i]
-#  print (lb.toString())
-#  for j in range (len(lb.workers)):
-#    w = lb.workers[j]
-#    print (w.toString())
-
-
-## fetch all
 for c in iter(clusters):
   for s in iter(c.servers):
-    for vh in iter(s.vhosts):
-      try:
-        b=BalancerManagerParser()
-        page=fetch_balancer_manager_page(s.ip, s.port, vhost_name=vh.name, burl=vh.balancerUrlPath)
-        b.feed(page)
-        vh.lbs = b.lbs
-      except:
-        s.error=True
+    map(curry(process_server_vhost, s), s.vhosts)
 
-
-## print all
-for c in iter(clusters):
-  print c
-  for s in iter(c.servers):
-    print s
-    for vh in iter(s.vhosts):
-      print vh
-      for lb in iter(vh.lbs):
-        print lb
-        for w in iter(lb.workers):
-          print w
+print_debug(clusters)
 
