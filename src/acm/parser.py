@@ -2,7 +2,7 @@
 ##
 from HTMLParser import HTMLParser
 from urllib2 import Request,urlopen,URLError
-from core import LoadBalancer,Worker,Cluster,Server,print_debug
+from core import LoadBalancer,Worker,Cluster,Server
 from functional import curry
 from configobj import ConfigObj
 import re
@@ -93,6 +93,11 @@ class ConfigParser():
     '''Read a configuration file (configobj format) and return a list of Clusters'''
     result = []
     config = ConfigObj(self.filename)
+
+    clusters = self._getConfigValue(config, 'clusters')
+    if not isinstance(clusters, list):
+      raise SyntaxError('Configuration error [%s] - clusters is not a list. Add a coma to create one' % self.filename)
+
     for c in iter(self._getConfigValue(config, 'clusters')):
       cluster = Cluster()
       cluster.name = self._getConfigValue(config, c, 'name')
@@ -153,16 +158,16 @@ def process_server_vhost(srv, vhost):
     vhost.lbs = b.lbs
   except Exception, e:
     #print "hohohoho - %s" % e
-    s.error=True
+    srv.error=True
 
 
 ##
 ## Test
-configParser = ConfigParser(sys.argv[1])
-clusters = configParser.readConf()
-for c in iter(clusters):
-  for s in iter(c.servers):
-    map(curry(process_server_vhost, s), s.vhosts)
-
-print_debug(clusters)
+#configParser = ConfigParser(sys.argv[1])
+#clusters = configParser.readConf()
+#for c in iter(clusters):
+#  for s in iter(c.servers):
+#    map(curry(process_server_vhost, s), s.vhosts)
+#
+#print_debug(clusters)
 
