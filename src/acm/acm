@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: iso-8859-15 -*-
 
 ## Package acm.acm
 ##
@@ -8,6 +9,11 @@ from urllib2 import URLError
 from optparse import OptionParser, OptionGroup
 from functional import curry
 
+_help_message='use -h or --help for help'
+ERROR_NO_CONF='Give me a configuration file, %s' % _help_message
+ERROR_NO_CMD='No command specified, %s' % _help_message
+
+## Options definition
 parser = OptionParser()
 parser.add_option('-c', '--conf', dest='conf', \
   help='Specify configuration file')
@@ -30,24 +36,45 @@ group_cmd.add_option('-i', '--info', dest='cmd', action='store_const', const="in
 group_cmd.add_option('-s', '--set', dest='cmd', action='store_const', const="set", \
   help='Set a server var, specify -o')
 
+group_selection = OptionGroup(parser, "Selection options (regular expression is possible)")
+group_selection.add_option('-b', '--balancer-name', dest='lb_filter', default='.*', \
+  help='Filter by balancer name')
+group_selection.add_option('-r', '--route', dest='route_filter', default='.*', \
+  help='Filter by route')
+group_selection.add_option('-w', '--worker', dest='worker_filter', default='.*', \
+  help='Filter by worker URL')
+group_selection.add_option('-v', '--vhost', dest='vhost_filter', default='.*', \
+  help='Filter by vhost name')
+group_selection.add_option('-u', '--cluster', dest='cluster_filter', default='.*', \
+  help='Filter by cluster name')
+
 parser.add_option_group(group_cmd)
 parser.add_option_group(group_set)
+parser.add_option_group(group_selection)
 
+## Options parsing
 (opts, args) = parser.parse_args()
 
 ##
-
 if not opts.conf:
-  print 'Give me a configuration file !'
+  sys.stderr.write("Error: %s\n" % ERROR_NO_CONF)
   sys.exit(1)
-
-if opts.cmd == 'info':
+else:
+  ## Getting config and fetch current values
   configParser = ConfigParser(opts.conf)
   clusters = configParser.readConf()
   for c in iter(clusters):
     for s in iter(c.servers):
       map(curry(process_server_vhost, s), s.vhosts)
-  print_debug(clusters)
+  ## Filtering if needed
+  acm_filter(clusters, filter_cluster=opts.cluster_filter, \
+                       filter_vhost=opts.vhost_filter, \
+                       filter_lbname=opts.lb_filter, \
+		       filter_route=opts.route_filter, \
+		       filter_worker=opts.worker_filter)
+
+if opts.cmd == 'info':
+  acm_print(clusters)
 elif opts.cmd == 'set':
   if opts.lf:
     print 'Setting lf'
@@ -60,5 +87,5 @@ elif opts.cmd == 'set':
   if opts.dw:
     print 'Setting dw'
 else:
-  print "No command specified, use -h or --help"
+  sys.stderr.write("Error: %s\n" % ERROR_NO_CMD)
 
