@@ -23,12 +23,14 @@ import sys
 from exceptions import SyntaxError
 
 class BalancerManagerParser(HTMLParser):
-  def __init__(self):
+  def __init__(self, srv, vhost):
     HTMLParser.__init__(self)
     self.lbs = []
     self.curtags = []
     self.reinit()
     self.curlb = None
+    self.srv = srv
+    self.vhost = vhost
 
   def handle_starttag(self, tag, attrs):
     self.curtags.append(tag)
@@ -45,7 +47,7 @@ class BalancerManagerParser(HTMLParser):
       self.lbptr = -1
     elif tag == 'tr' and self.tables == 2 and len(self.wattrs) > 0:
       self.wptr = -1
-      w = Worker()
+      w = Worker(self.srv, self.vhost)
       self.curworker = w
       self.curlb.workers.append(w)
     elif tag == 'td' and self.tables == 1:
@@ -165,22 +167,11 @@ def fetch_balancer_manager_page(srv, vhost=None):
 
 def process_server_vhost(srv, vhost):
   try:
-    b=BalancerManagerParser()
+    b=BalancerManagerParser(srv, vhost)
     page=fetch_balancer_manager_page(srv, vhost)
     b.feed(page)
     vhost.lbs = b.lbs
   except Exception, e:
     #print "hohohoho - %s" % e
     srv.error=True
-
-
-##
-## Test
-#configParser = ConfigParser(sys.argv[1])
-#clusters = configParser.readConf()
-#for c in iter(clusters):
-#  for s in iter(c.servers):
-#    map(curry(process_server_vhost, s), s.vhosts)
-#
-#print_debug(clusters)
 

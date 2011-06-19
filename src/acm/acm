@@ -79,7 +79,7 @@ else:
   for c in iter(clusters):
     for s in iter(c.servers):
       map(curry(process_server_vhost, s), s.vhosts)
-  ## Filtering if needed
+  ## Applying filters if specified
   acm_filter(clusters, filter_cluster=opts.cluster_filter, \
                        filter_vhost=opts.vhost_filter, \
                        filter_lbname=opts.lb_filter, \
@@ -89,16 +89,7 @@ else:
 if opts.cmd == 'info':
   acm_print(clusters)
 elif opts.cmd == 'set':
-  if opts.lf:
-    print 'Setting lf'
-  if opts.ls:
-    print 'Setting ls'
-  if opts.wr:
-    print 'Setting wr'
-  if opts.rr:
-    print 'Setting rr'
-  if opts.dw:
-    print 'Setting dw'
+  acm_set(clusters, lf=opts.lf, ls=opts.ls, wr=opts.wr, rr=opts.rr, dw=opts.dw)
 else:
   sys.stderr.write("Error: %s\n" % ERROR_NO_CMD)
 

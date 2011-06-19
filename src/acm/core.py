@@ -15,12 +15,13 @@
 ## Core objects for Apache Cluster Manager project
 from termcolor import colored
 from functional import curry
+from urllib2 import Request,urlopen
 import re
 import copy
 
 class Worker():
   """apache Load Balancer Worker class"""
-  def __init__(self):
+  def __init__(self, parentServer, parentVHost):
     self.mark = False
     self.actionURL = ''
     self.Worker_URL = ''
@@ -32,9 +33,41 @@ class Worker():
     self.Elected = ''
     self.To = ''
     self.From = ''
+    self.parentServer = parentServer
+    self.parentVHost = parentVHost
   
   def setMark(self, m):
     self.mark = m
+
+  def commitValues(self, *args, **kwargs):
+    '''
+    Set values given by kwargs
+    set a variable by giving its name and its value as a parameter to this function 
+    (name is given by its GET parameter in the balancer-manager)
+    Example : set lf to 2 and ls to 10 :
+      worker.commitValues(lf=2, ls=10)
+    '''
+    srv = self.parentServer
+    vh  = self.parentVHost
+    try:
+      print ('[%s:%s - %s] Applying values %s' % (srv.ip, srv.port, vh.name, kwargs))
+    except:
+      pass
+    if srv is None:
+      return False
+    url = self.actionURL
+    for arg in iter(kwargs):
+      val = kwargs[arg]
+      if val is not None:
+        url += '&%s=%s' % (arg, val)
+    ## Caling url to set values given
+    try:
+      req = Request('http://%s:%s/%s' % (srv.ip, srv.port, url))
+      if vh is not None and vh.name != '': req.add_header('Host', vh.name)
+      urlopen(req)
+    except: ## Error
+      return False
+    return True
 
   def __str__(self):
     return '  Worker: Worker_URL=%s, Route=%s, RouteRedir=%s, Factor=%s, Set=%s, Status=%s, Elected=%s, To=%s, From=%s' % \
@@ -121,6 +154,31 @@ class Cluster():
 
 
 ##
+def __myPrint(o):
+  print o
+
+def __set_val(obj, **kwargs):
+  if isinstance(obj, Worker):
+    obj.commitValues(**kwargs)
+
+def __acm_apply_func(obj, func=__myPrint):
+  ''' Apply a function to all instances of an acm object'''
+  f = curry(__acm_apply_func, func=func)
+  if isinstance(obj, list):
+    map(f, obj)
+  elif not obj.mark:
+    func(obj)
+
+  if isinstance(obj, Cluster):
+    f(obj.servers)
+  elif isinstance(obj, Server):
+    f(obj.vhosts)
+  elif isinstance(obj, VHost):
+    f(obj.lbs)
+  elif isinstance(obj, LoadBalancer):
+    f(obj.workers)
+
+
 def acm_filter(obj, filter_cluster='.*', filter_vhost='.*', filter_lbname='.*', filter_route='.*', filter_worker='.*'):
   '''Apply given filters to given acm object'''
   f=curry(acm_filter, \
@@ -158,17 +216,11 @@ def acm_filter(obj, filter_cluster='.*', filter_vhost='.*', filter_lbname='.*', 
 
 def acm_print(obj):
   '''Print given acm object'''
-  if isinstance(obj, list):
-    map(acm_print, obj)
-  elif not obj.mark:
-    print obj
+  __acm_apply_func(obj)
 
-  if isinstance(obj, Cluster):
-    acm_print(obj.servers)
-  elif isinstance(obj, Server):
-    acm_print(obj.vhosts)
-  elif isinstance(obj, VHost):
-    acm_print(obj.lbs)
-  elif isinstance(obj, LoadBalancer):
-    acm_print(obj.workers) 
+
+def acm_set(obj, lf=None, ls=None, wr=None, rr=None, dw=None):
+  '''Set values on an acm object'''
+  f = curry(__set_val, lf=lf, ls=ls, wr=wr, rr=rr, dw=dw)
+  __acm_apply_func(obj, f)
 
