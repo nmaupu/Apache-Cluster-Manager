@@ -17,7 +17,6 @@ from termcolor import colored
 from functional import curry
 from urllib2 import Request,urlopen
 import re
-import copy
 
 class Worker():
   """apache Load Balancer Worker class"""
