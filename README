@@ -1,4 +1,5 @@
 Apache Cluster Manager is a set of tools to manage a cluster of Apache Httpd with mod_proxy_balancer
+See the main website for more help : http://code.google.com/p/apache-cluster-manager
 
 Python dependencies:
   - configobj
