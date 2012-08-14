@@ -45,9 +45,9 @@ group_set.add_option('--dw', dest='dw', action='store', type='choice', choices=(
 
 group_cmd = OptionGroup(parser, "Command options")
 group_cmd.add_option('-i', '--info', dest='cmd', action='store_const', const="info", \
-  help='Specify configuration file')
+  help='Display clusters information')
 group_cmd.add_option('-s', '--set', dest='cmd', action='store_const', const="set", \
-  help='Set a server var, specify -o')
+  help='Set one or more vars on workers (do not forget to apply selection filters)')
 
 group_selection = OptionGroup(parser, "Selection options (regular expression is possible)")
 group_selection.add_option('-b', '--balancer-name', dest='lb_filter', default='.*', \
