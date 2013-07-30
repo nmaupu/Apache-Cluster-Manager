@@ -61,7 +61,8 @@ class Worker():
         url += '&%s=%s' % (arg, val)
     ## Caling url to set values given
     try:
-      req = Request('http://%s:%s/%s' % (srv.ip, srv.port, url))
+      protocol = srv.secure and 'https' or 'http'
+      req = Request('%s://%s:%s/%s' % (protocol, srv.ip, srv.port, url))
       if vh is not None and vh.name != '': req.add_header('Host', vh.name)
       urlopen(req)
     except: ## Error
@@ -117,6 +118,7 @@ class Server():
     self.mark = False
     self.ip   = ''
     self.port = '80'
+    self.secure = False
     self.vhosts = []
     self.error = False
 
