@@ -122,6 +122,7 @@ class ConfigParser():
         srv = Server()
         srv.ip = self._getConfigValue(config, s, 'ip')
         srv.port = self._getConfigValue(config, s, 'port')
+        srv.secure = self._getConfigValue(config, s, 'secure')
         #print ('Server found : %s:%s' % (srv.ip, srv.port))
 	##
 	vhosts = self._getConfigValue(config, s, 'vhosts')
