@@ -122,6 +122,7 @@ class ConfigParser():
         srv = Server()
         srv.ip = self._getConfigValue(config, s, 'ip')
         srv.port = self._getConfigValue(config, s, 'port')
+        srv.secure = self._getConfigValue(config, s, 'secure')
         #print ('Server found : %s:%s' % (srv.ip, srv.port))
 	##
 	vhosts = self._getConfigValue(config, s, 'vhosts')
@@ -157,7 +158,8 @@ def fetch_balancer_manager_page(srv, vhost=None):
     vh = VHost() ## Create a default vhost
     
   try:
-    req = Request('http://%s:%s/%s' % (srv.ip, srv.port, vh.balancerUrlPath))
+    protocol = srv.secure and 'https' or 'http'
+    req = Request('%s://%s:%s/%s' % (protocol, srv.ip, srv.port, vh.balancerUrlPath))
     if vh.name != '': req.add_header('Host', vh.name)
     r = urlopen(req)
     return r.read()
