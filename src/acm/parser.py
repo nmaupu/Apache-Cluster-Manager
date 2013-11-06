@@ -174,6 +174,6 @@ def process_server_vhost(srv, vhost):
     b.feed(page)
     vhost.lbs = b.lbs
   except Exception, e:
-    #print "hohohoho - %s" % e
+    #print ("hohohoho - %s" % e)
     srv.error=True
 

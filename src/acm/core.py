@@ -156,7 +156,7 @@ class Cluster():
 
 ##
 def __myPrint(o):
-  print o
+  print (o)
 
 def __set_val(obj, **kwargs):
   if isinstance(obj, Worker):
