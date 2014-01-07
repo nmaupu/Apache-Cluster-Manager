@@ -58,7 +58,15 @@ class Worker():
     for arg in iter(kwargs):
       val = kwargs[arg]
       if val is not None:
-        url += '&%s=%s' % (arg, val)
+        param = '&%s=%s' % (arg, val)
+
+        #print("srv modealt=%s and arg=%s" % (srv.modealt, arg))
+        if srv.modealt and arg == "dw":
+          v = val == "Disable" and "1" or "0"
+          param = '&status_I=0&status_H=0&status_D=%s' % v
+          #print("parameters = %s" % param)
+        
+        url += param
     ## Caling url to set values given
     try:
       protocol = srv.secure and 'https' or 'http'
@@ -121,6 +129,8 @@ class Server():
     self.secure = False
     self.vhosts = []
     self.error = False
+    ## True for alternative mode (the way we can disable a worker)
+    self.modealt = False
 
   def add_vhost(self, name, balancerUrlPath='balancer-manager'):
     vh = VHost()

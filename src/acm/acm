@@ -49,7 +49,7 @@ group_cmd.add_option('-i', '--info', dest='cmd', action='store_const', const="in
 group_cmd.add_option('-s', '--set', dest='cmd', action='store_const', const="set", \
   help='Set one or more vars on workers (do not forget to apply selection filters)')
 
-group_selection = OptionGroup(parser, "Selection options (regular expression is possible)")
+group_selection = OptionGroup(parser, "Selection options (regular expression are possible)")
 group_selection.add_option('-b', '--balancer-name', dest='lb_filter', default='.*', \
   help='Filter by balancer name')
 group_selection.add_option('-r', '--route', dest='route_filter', default='.*', \

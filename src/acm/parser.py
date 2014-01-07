@@ -122,7 +122,8 @@ class ConfigParser():
         srv = Server()
         srv.ip = self._getConfigValue(config, s, 'ip')
         srv.port = self._getConfigValue(config, s, 'port')
-        srv.secure = self._getConfigValue(config, s, 'secure')
+	srv.secure = self._getConfigValue(config, s, 'secure')
+        srv.modealt = self._getConfigValue(config, s, 'modealt')
         #print ('Server found : %s:%s' % (srv.ip, srv.port))
 	##
 	vhosts = self._getConfigValue(config, s, 'vhosts')
@@ -159,13 +160,18 @@ def fetch_balancer_manager_page(srv, vhost=None):
     
   try:
     protocol = srv.secure and 'https' or 'http'
+    #print protocol
     req = Request('%s://%s:%s/%s' % (protocol, srv.ip, srv.port, vh.balancerUrlPath))
+    #print ('%s://%s:%s/%s' % (protocol, srv.ip, srv.port, vh.balancerUrlPath))
+#    req = Request('http://%s:%s/%s' % (srv.ip, srv.port, vh.balancerUrlPath))
     if vh.name != '': req.add_header('Host', vh.name)
     r = urlopen(req)
     return r.read()
   except URLError, e:
     #print ('Error occured [%s:%s] - %s' % (srv.ip, srv.port, e.reason))
     raise
+  except Exception, e:
+    print e
 
 def process_server_vhost(srv, vhost):
   try:

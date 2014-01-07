@@ -1,4 +1,6 @@
-Apache Cluster Manager is a set of tools to manage a cluster of Apache Httpd with mod_proxy_balancer
+-== Introduction ==-
+
+Apache Cluster Manager (ACM) is a set of tools to manage a cluster of Apache Httpd with mod_proxy_balancer
 See the main website for more help : http://code.google.com/p/apache-cluster-manager
 
 Python dependencies:
@@ -7,3 +9,8 @@ Python dependencies:
   - optparse
   - termcolor
   - urllib2
+
+-== Running ACM ==-
+
+  - Create your configuration file (you can find a sample file (sample.cfg) right at ACM's root directory)
+  - Simply run bash script named 'acm' from ACM's root directory. -h option could be a good start ;-)
