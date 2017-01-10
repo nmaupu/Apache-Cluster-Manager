@@ -13,7 +13,11 @@
 # limitations under the License.
 ## Package acm.core
 ## Core objects for Apache Cluster Manager project
-from termcolor import colored
+try:
+  from termcolor import colored
+except ImportError:
+  def colored(s, *args, **kwargs):
+    return s
 from functional import curry
 from urllib2 import Request,urlopen
 import re
