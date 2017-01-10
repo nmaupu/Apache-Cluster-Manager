@@ -78,7 +78,7 @@ class Worker():
     return True
 
   def __str__(self):
-    return '  Worker: Worker_URL=%s, Route=%s, RouteRedir=%s, Factor=%s, Set=%s, Status=%s, Elected=%s, To=%s, From=%s' % \
+    return '    Worker: %s = Route=%s, RouteRedir=%s, Factor=%s, Set=%s, Status=%s, Elected=%s, To=%s, From=%s' % \
       (self.Worker_URL, self.Route, self.RouteRedir, self.Factor, self.Set, self.Status, self.Elected, self.To, self.From)
 
 
@@ -99,8 +99,8 @@ class LoadBalancer():
       w.setMark(m)
 
   def __str__(self):
-    return 'Load balancer (%d workers): name=%s, StickySession=%s, Timeout=%s, FailoverAttempts=%s, Method=%s' % \
-      (len(self.workers), self.name, self.StickySession, self.Timeout, self.FailoverAttempts, self.Method)
+    return '   Balancer: %s = StickySession=%s, Timeout=%s, FailoverAttempts=%s, Method=%s' % \
+      (self.name, self.StickySession, self.Timeout, self.FailoverAttempts, self.Method)
     
 
 class VHost():
@@ -117,7 +117,7 @@ class VHost():
       lb.setMark(m)
 
   def __str__(self):
-    return 'vhost: (%d lbs): name=%s, balancerUrlPath=%s' % (len(self.lbs), self.name, self.balancerUrlPath)
+    return '  Vhost: %s/%s' % (self.name, self.balancerUrlPath)
 
 
 class Server():
@@ -146,7 +146,7 @@ class Server():
   def __str__(self):
     boldblink=['bold', 'blink']
     bold=['bold']
-    return 'Server (%d vhosts) [%s]: ip=%s, port=%s' % (len(self.vhosts), (colored('KO', 'red', attrs=boldblink) if self.error else colored('OK', 'green', attrs=bold)), self.ip, self.port)
+    return ' Server [%s]: %s:%s' % ((colored('KO', 'red', attrs=boldblink) if self.error else colored('OK', 'green', attrs=bold)), self.ip, self.port)
     
 class Cluster():
   """Class representing a group of apache Servers - contains a list of Servers"""
@@ -161,7 +161,7 @@ class Cluster():
       s.setMark(m)
 
   def __str__(self):
-    return 'Cluster (%d servers): name=%s' % (len(self.servers), self.name)
+    return 'Cluster: %s' % (self.name)
 
 
 ##
