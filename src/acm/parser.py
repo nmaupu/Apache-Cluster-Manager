@@ -118,7 +118,11 @@ class ConfigParser():
       cluster.name = self._getConfigValue(config, c, 'name')
       #print ('Cluster found : %s' % cluster.name)
 
-      for s in iter(self._getConfigValue(config, c, 'servers')):
+      servers = self._getConfigValue(config, c, 'servers')
+      if not isinstance(servers, list):
+        raise SyntaxError('Configuration error [%s] - servers is not a list. Add a coma to create one' % self.filename)
+
+      for s in iter(servers):
         srv = Server()
         srv.ip = self._getConfigValue(config, s, 'ip')
         srv.port = self._getConfigValue(config, s, 'port')
